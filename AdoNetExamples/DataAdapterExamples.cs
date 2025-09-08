@@ -13,8 +13,6 @@ namespace AdoNetExamples
             Password = "Password1",
             TrustServerCertificate = true
         };
-
-
         
         public static void PopulateDataTable()
         {

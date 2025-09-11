@@ -85,53 +85,6 @@ namespace AdoNetExamples
                 Console.WriteLine($"Order {order["Id"],-2}: Amount={order["Amount"],6} -> Customer={parentCustomer["Name"]}");
             }
         }
-
-        #region GetSchema
-        public static void TestDataAdapterFillSchema() 
-        {
-            using var conn = new SqlConnection(ConnectionStringBuilder.ConnectionString);
-
-            // FillSchema automatically fetches keys and constraints
-            var adapter = new SqlDataAdapter("SELECT * FROM dbo.Customers", conn);
-
-            var table = new DataTable("Customers");
-            adapter.FillSchema(table, SchemaType.Source); // fetches schema + constraints
-            adapter.Fill(table);
-            Console.WriteLine($"Rows count :{table.Rows.Count}");
-
-            Console.WriteLine("Columns:");
-            foreach (DataColumn col in table.Columns)
-            {
-                Console.WriteLine($" - {col.ColumnName} ({col.DataType}) AllowNull={col.AllowDBNull}");
-            }
-
-            Console.WriteLine("\nPrimary Keys:");
-            foreach (DataColumn pk in table.PrimaryKey)
-            {
-                Console.WriteLine($" - {pk.ColumnName}");
-            }
-
-            Console.WriteLine("\nConstraints:");
-            foreach (Constraint c in table.Constraints)
-            {
-                Console.WriteLine($" - {c.ConstraintName} ({c.GetType().Name})");
-            }
-        }
-
-        public static void TestSqlConnectionGetSchema()
-        {
-            using (var conn = new SqlConnection(ConnectionStringBuilder.ConnectionString))
-            {
-                conn.Open();
-                DataTable constraints = conn.GetSchema("IndexColumns", [null, null, "Customers"]);
-
-                foreach (DataRow row in constraints.Rows)
-                {
-                    Console.WriteLine($"{row["CONSTRAINT_NAME"]} → Column: {row["COLUMN_NAME"]}");
-                }
-            }
-        }
-        #endregion
     }
 
 }

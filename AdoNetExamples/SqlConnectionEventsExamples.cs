@@ -5,21 +5,12 @@ namespace AdoNetExamples
 {
     public static class SqlConnectionEventsExamples
     {
-        private static readonly SqlConnectionStringBuilder ConnectionStringBuilder = new SqlConnectionStringBuilder
-        {
-            DataSource = "tcp:localhost",
-            InitialCatalog = "AdoNetExamples",
-            UserID = "sa",
-            Password = "Password1",
-            TrustServerCertificate = true
-        };
-
         /// <summary>
         /// Demonstrates handling the SqlConnection.InfoMessage event.
         /// </summary>
         public static void DemoInfoMessage()
         {
-            using var conn = new SqlConnection(ConnectionStringBuilder.ConnectionString);
+            using var conn = new SqlConnection(AdoNetExamplesConnectionStringBuilder.ConnectionString);
 
             // Subscribe to InfoMessage before opening the connection
             conn.InfoMessage += OnInfoMessage;
@@ -49,11 +40,17 @@ namespace AdoNetExamples
                 Console.WriteLine("Caught SqlException:");
                 Console.WriteLine($"  {ex.Message}");
             }
+
+            //Console.WriteLine("\n#Example 4: SELECT TOP 1* from Customers\n");
+            //using (var cmd = new SqlCommand("SELECT TOP 1* from Customers;", conn))
+            //{
+            //    cmd.ExecuteNonQuery();
+            //}
         }
 
         public static void DemoStatisticsInfoMessage()
         {
-            using var conn = new SqlConnection(ConnectionStringBuilder.ConnectionString);
+            using var conn = new SqlConnection(AdoNetExamplesConnectionStringBuilder.ConnectionString);
 
             // Capture PRINT / STATISTICS messages
             conn.InfoMessage += OnInfoMessageWithoutPrintingErrors;
@@ -87,7 +84,7 @@ PRINT '--- End Demo ---';
         public static void PrintSessionIsolationLevelInfo()
         {
             Console.WriteLine("\n#Print isolation level having previously set it to Serializable\n");
-            using var conn1 = new SqlConnection(ConnectionStringBuilder.ConnectionString);
+            using var conn1 = new SqlConnection(AdoNetExamplesConnectionStringBuilder.ConnectionString);
 
             // (Optional) capture PRINT output via your existing handler
             conn1.InfoMessage += OnInfoMessage;
@@ -116,7 +113,7 @@ PRINT 'Current Isolation Level: ' + @level;";
             conn1.Close();
 
             Console.WriteLine("\n#Reuse physical connection and print isolation level without manual resetting\n");
-            using var conn2 = new SqlConnection(ConnectionStringBuilder.ConnectionString);
+            using var conn2 = new SqlConnection(AdoNetExamplesConnectionStringBuilder.ConnectionString);
 
             conn2.InfoMessage += OnInfoMessage;
 
@@ -125,7 +122,7 @@ PRINT 'Current Isolation Level: ' + @level;";
             cmd2.ExecuteNonQuery();
 
             Console.WriteLine("\n#Another physical connection and print its isolation level\n");
-            using var conn3 = new SqlConnection(ConnectionStringBuilder.ConnectionString);
+            using var conn3 = new SqlConnection(AdoNetExamplesConnectionStringBuilder.ConnectionString);
 
             conn3.InfoMessage += OnInfoMessage;
 
@@ -143,7 +140,7 @@ PRINT 'Current Isolation Level: ' + @level;";
         /// </summary>
         public static void DemoStateChangeBasic()
         {
-            using var conn = new SqlConnection(ConnectionStringBuilder.ConnectionString);
+            using var conn = new SqlConnection(AdoNetExamplesConnectionStringBuilder.ConnectionString);
 
             // idempotent attach pattern
             conn.StateChange -= OnStateChange;
@@ -168,7 +165,7 @@ PRINT 'Current Isolation Level: ' + @level;";
         {
             Console.WriteLine("# DemoStateChange_EnsureReadCommitted");
 
-            using var conn = new SqlConnection(ConnectionStringBuilder.ConnectionString);
+            using var conn = new SqlConnection(AdoNetExamplesConnectionStringBuilder.ConnectionString);
 
             // Idempotent subscription
             conn.StateChange -= OnStateChangeWithIsolationLevelCheck;

@@ -24,7 +24,7 @@ namespace AdoNetExamples
             ORDER BY Id;";
 
             await using var cmd = new SqlCommand(sql, conn);
-
+            
             // ExecuteReaderAsync returns a forward-only, read-only cursor
             await using var reader = await cmd.ExecuteReaderAsync();
 

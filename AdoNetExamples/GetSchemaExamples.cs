@@ -5,27 +5,9 @@ namespace AdoNetExamples
 {
     internal static class GetSchemaExamples
     {
-        private static readonly SqlConnectionStringBuilder MySchoolDbConnectionStringBuilder = new()
-        {
-            DataSource = "tcp:localhost",
-            InitialCatalog = "MySchool",
-            UserID = "sa",
-            Password = "Password1",
-            TrustServerCertificate = true
-        };
-
-        private static readonly SqlConnectionStringBuilder AdoNetExamplesDbConnectionStringBuilder = new()
-        {
-            DataSource = "tcp:localhost",
-            InitialCatalog = "AdoNetExamples",
-            UserID = "sa",
-            Password = "Password1",
-            TrustServerCertificate = true
-        };
-
         public static void TestDataAdapterFillSchema()
         {
-            using var conn = new SqlConnection(AdoNetExamplesDbConnectionStringBuilder.ConnectionString);
+            using var conn = new SqlConnection(AdoNetExamplesConnectionStringBuilder.ConnectionString);
 
             // FillSchema automatically fetches keys and constraints
             var adapter = new SqlDataAdapter("SELECT * FROM dbo.Customers", conn);
@@ -56,7 +38,7 @@ namespace AdoNetExamples
 
         public static void TestSqlConnectionGetSchema()
         {
-            using (var conn = new SqlConnection(AdoNetExamplesDbConnectionStringBuilder.ConnectionString))
+            using (var conn = new SqlConnection(AdoNetExamplesConnectionStringBuilder.ConnectionString))
             {
                 conn.Open();
                 DataTable constraints = conn.GetSchema("IndexColumns", [null, null, "Customers"]);

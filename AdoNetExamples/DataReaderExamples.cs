@@ -4,18 +4,9 @@ namespace AdoNetExamples
 {
     internal static class DataReaderExamples
     {
-        private static readonly SqlConnectionStringBuilder ConnectionStringBuilder = new SqlConnectionStringBuilder
-        {
-            DataSource = "tcp:localhost",
-            InitialCatalog = "AdoNetExamples",
-            UserID = "sa",
-            Password = "Password1",
-            TrustServerCertificate = true
-        };
-
         public static async Task ReadDataFromTableAsync()
         {
-            await using var conn = new SqlConnection(ConnectionStringBuilder.ConnectionString);
+            await using var conn = new SqlConnection(AdoNetExamplesConnectionStringBuilder.ConnectionString);
             await conn.OpenAsync();
 
             const string sql = @"

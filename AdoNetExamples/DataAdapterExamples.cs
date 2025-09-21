@@ -4,19 +4,10 @@ using System.Data;
 namespace AdoNetExamples
 {
     internal static class DataAdapterExamples
-    {
-        private static readonly SqlConnectionStringBuilder ConnectionStringBuilder = new SqlConnectionStringBuilder
-        {
-            DataSource = "tcp:localhost",
-            InitialCatalog = "AdoNetExamples",
-            UserID = "sa",
-            Password = "Password1",
-            TrustServerCertificate = true
-        };
-        
+    {        
         public static void PopulateDataTable()
         {
-            using var conn = new SqlConnection(ConnectionStringBuilder.ConnectionString);
+            using var conn = new SqlConnection(AdoNetExamplesConnectionStringBuilder.ConnectionString);
             conn.Open();
 
             const string sql = @"SELECT Id, [Name], Email, CreatedAt
@@ -46,7 +37,7 @@ namespace AdoNetExamples
 
         public static void GetParentAndItsChildren()
         {
-            using var conn = new SqlConnection(ConnectionStringBuilder.ConnectionString);
+            using var conn = new SqlConnection(AdoNetExamplesConnectionStringBuilder.ConnectionString);
 
             var ds = new DataSet();
 

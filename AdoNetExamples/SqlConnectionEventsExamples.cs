@@ -224,7 +224,7 @@ PRINT 'Current Isolation Level: ' + @level;";
             }
         }
 
-        private static void OnStateChange(object? sender, StateChangeEventArgs e)
+        public static void OnStateChange(object? sender, StateChangeEventArgs e)
         {
             var conn = (SqlConnection?)sender;
             // Try to print SPID if we’re already open; otherwise skip

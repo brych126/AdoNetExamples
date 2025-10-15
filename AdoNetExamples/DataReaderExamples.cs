@@ -56,7 +56,7 @@ namespace AdoNetExamples
                 {
                     int orderId = reader.GetInt32(ordOrderId);
                     int customerId = reader.GetInt32(ordCustomerId);
-                    decimal amount = reader.GetDecimal(ordAmount);
+                    decimal amount =  reader.IsDBNull(ordAmount) ? 0 : reader.GetDecimal(ordAmount);
                     DateTime created = reader.GetDateTime(ordOrderCreated);
 
                     Console.WriteLine($"Order {orderId}: Cust={customerId}, Amount={amount:C}, Date={created:yyyy-MM-dd}");

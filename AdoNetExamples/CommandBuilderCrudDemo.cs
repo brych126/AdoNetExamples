@@ -65,8 +65,6 @@ DBCC CHECKIDENT ('Customers', RESEED, @max_id);
             // it pushes each statement in scope of separate round trip which is bad
             adapter.Update(table);
 
-            // After Update, the builder’s INSERT typically returns SCOPE_IDENTITY()
-            // and updates the DataRow’s Id in place.
             Console.WriteLine($"Inserted row got Id = {newRow["Id"]}");
 
             // -----------------------

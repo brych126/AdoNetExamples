@@ -1,3 +1,6 @@
+/* =========================
+   Create DB from scratch
+   ========================= */
 IF DB_ID(N'AdoNetExamples') IS NULL
 BEGIN
     CREATE DATABASE [AdoNetExamples];
@@ -7,38 +10,83 @@ GO
 USE [AdoNetExamples];
 GO
 
--- Create Customers table
-IF OBJECT_ID(N'dbo.Customers', N'U') IS NULL
-BEGIN
-    CREATE TABLE dbo.Customers
-    (
-        Id         INT IDENTITY(1,1) PRIMARY KEY,
-        [Name]     NVARCHAR(100) NOT NULL,
-        Email      NVARCHAR(255) NULL,
-        CreatedAt  DATETIME2(0) NOT NULL 
-                   CONSTRAINT DF_Customers_CreatedAt DEFAULT (SYSUTCDATETIME())
-    );
-END
+/* =========================
+   Core Tables
+   ========================= */
+
+/* Customers */
+IF OBJECT_ID(N'dbo.Customers', N'U') IS NOT NULL DROP TABLE dbo.Customers;
+GO
+CREATE TABLE dbo.Customers
+(
+    Id         INT IDENTITY(1,1) PRIMARY KEY,
+    [Name]     NVARCHAR(100) NOT NULL,
+    Email      NVARCHAR(255) NULL,
+    CreatedAt  DATETIME2(0)  NOT NULL
+               CONSTRAINT DF_Customers_CreatedAt DEFAULT (SYSUTCDATETIME())
+);
 GO
 
--- Create Orders table (linked to Customers)
-IF OBJECT_ID(N'dbo.Orders', N'U') IS NULL
-BEGIN
-    CREATE TABLE dbo.Orders
-    (
-        Id        INT IDENTITY(1,1) PRIMARY KEY,
-        CustomerId INT NOT NULL,
-        Amount    DECIMAL(10,2) NOT NULL,
-        CreatedAt DATETIME2(0) NOT NULL 
-                   CONSTRAINT DF_Orders_CreatedAt DEFAULT (SYSUTCDATETIME()),
+/* Orders */
+IF OBJECT_ID(N'dbo.Orders', N'U') IS NOT NULL DROP TABLE dbo.Orders;
+GO
+CREATE TABLE dbo.Orders
+(
+    Id         INT IDENTITY(1,1) PRIMARY KEY,
+    CustomerId INT         NOT NULL,
+    Payed      BIT         NOT NULL CONSTRAINT DF_Orders_Payed DEFAULT (0),
+    Amount     DECIMAL(10,2) NULL,  -- null until payed
+    CreatedAt  DATETIME2(0)  NOT NULL
+               CONSTRAINT DF_Orders_CreatedAt DEFAULT (SYSUTCDATETIME()),
 
-        CONSTRAINT FK_Orders_Customers FOREIGN KEY (CustomerId) 
-            REFERENCES dbo.Customers(Id)
-    );
-END
+    CONSTRAINT FK_Orders_Customers FOREIGN KEY (CustomerId)
+        REFERENCES dbo.Customers(Id)
+);
+
+/* Enforce: Payed=0 -> Amount IS NULL; Payed=1 -> Amount IS NOT NULL */
+ALTER TABLE dbo.Orders WITH NOCHECK
+ADD CONSTRAINT CK_Orders_Payed_Amount_Nullability
+CHECK ( (Payed = 0 AND Amount IS NULL) OR (Payed = 1 AND Amount IS NOT NULL) );
+-- validate existing rows (none yet in a clean init)
+ALTER TABLE dbo.Orders WITH CHECK CHECK CONSTRAINT CK_Orders_Payed_Amount_Nullability;
 GO
 
--- Seed Customers
+/* Products (current, changeable price) */
+IF OBJECT_ID(N'dbo.Products', N'U') IS NOT NULL DROP TABLE dbo.Products;
+GO
+CREATE TABLE dbo.Products
+(
+    Id            INT IDENTITY(1,1) PRIMARY KEY,
+    [Name]        NVARCHAR(200)  NOT NULL,
+    CurrentPrice  DECIMAL(10,2)  NOT NULL,
+    CreatedAt     DATETIME2(0)   NOT NULL
+                  CONSTRAINT DF_Products_CreatedAt DEFAULT (SYSUTCDATETIME()),
+    CONSTRAINT UQ_Products_Name UNIQUE ([Name])
+);
+GO
+
+/* OrderDetails (many-to-many + per-line price snapshot) */
+IF OBJECT_ID(N'dbo.OrderDetails', N'U') IS NOT NULL DROP TABLE dbo.OrderDetails;
+GO
+CREATE TABLE dbo.OrderDetails
+(
+    OrderId    INT NOT NULL,
+    ProductId  INT NOT NULL,
+    Quantity   INT NOT NULL CONSTRAINT DF_OrderDetails_Quantity DEFAULT (1),
+    Price      DECIMAL(10,2) NULL,   -- set when order is payed (snapshot)
+
+    CONSTRAINT PK_OrderDetails PRIMARY KEY (OrderId, ProductId),
+
+    CONSTRAINT FK_OrderDetails_Orders
+        FOREIGN KEY (OrderId)   REFERENCES dbo.Orders(Id)   ON DELETE CASCADE,
+    CONSTRAINT FK_OrderDetails_Products
+        FOREIGN KEY (ProductId) REFERENCES dbo.Products(Id)
+);
+GO
+
+/* =========================
+   Seed Data
+   ========================= */
 IF NOT EXISTS (SELECT 1 FROM dbo.Customers)
 BEGIN
     INSERT INTO dbo.Customers ([Name], Email) VALUES
@@ -46,23 +94,51 @@ BEGIN
         (N'Bob',    N'bob@example.com'),
         (N'Clara',  NULL);
 END
-GO
 
--- Seed Orders
+IF NOT EXISTS (SELECT 1 FROM dbo.Products)
+BEGIN
+    INSERT INTO dbo.Products ([Name], CurrentPrice) VALUES
+        (N'USB-C Cable',            9.99),
+        (N'Wireless Mouse',        24.50),
+        (N'Mechanical Keyboard',   79.00);
+END
+
+-- Example orders: one unpaid (Amount=NULL), one paid (Amount set)
 IF NOT EXISTS (SELECT 1 FROM dbo.Orders)
 BEGIN
-    INSERT INTO dbo.Orders (CustomerId, Amount) VALUES
-        (1, 120.50),
-        (2,  99.99),
-        (1,  49.90);
+    -- Unpaid order (Amount must remain NULL)
+    INSERT INTO dbo.Orders (CustomerId, Payed, Amount)
+    VALUES (1, 0, NULL);
+
+    -- Paid order (Amount is required)
+    INSERT INTO dbo.Orders (CustomerId, Payed, Amount)
+    VALUES (2, 1, 99.99);
+END
+
+-- Example lines: for unpaid order, leave Price NULL; for paid order, snapshot
+IF NOT EXISTS (SELECT 1 FROM dbo.OrderDetails)
+BEGIN
+    DECLARE @UnpaidOrderId INT = (SELECT TOP 1 Id FROM dbo.Orders WHERE Payed = 0 ORDER BY Id);
+    DECLARE @PaidOrderId   INT = (SELECT TOP 1 Id FROM dbo.Orders WHERE Payed = 1 ORDER BY Id);
+    DECLARE @Prod1 INT = (SELECT TOP 1 Id FROM dbo.Products ORDER BY Id);
+    DECLARE @Prod2 INT = (SELECT TOP 1 Id FROM dbo.Products ORDER BY Id DESC);
+
+    IF @UnpaidOrderId IS NOT NULL
+        INSERT INTO dbo.OrderDetails (OrderId, ProductId, Quantity, Price)
+        VALUES (@UnpaidOrderId, @Prod1, 1, NULL);
+
+    IF @PaidOrderId IS NOT NULL
+        INSERT INTO dbo.OrderDetails (OrderId, ProductId, Quantity, Price)
+        SELECT @PaidOrderId, @Prod2, 2, CurrentPrice FROM dbo.Products WHERE Id = @Prod2;
 END
 GO
 
--- Stored procedures
+/* =========================
+   Stored Procedures
+   ========================= */
 IF OBJECT_ID(N'dbo.GetCustomerOrdersTotalAfterDateAsResultSet', N'P') IS NOT NULL
     DROP PROCEDURE dbo.GetCustomerOrdersTotalAfterDateAsResultSet;
 GO
-
 CREATE PROCEDURE dbo.GetCustomerOrdersTotalAfterDateAsResultSet
     @CustomerID INT,
     @OrdersDate DATETIME2
@@ -82,7 +158,6 @@ GO
 IF OBJECT_ID(N'dbo.GetCustomerOrdersTotalAfterDateAsOutput', N'P') IS NOT NULL
     DROP PROCEDURE dbo.GetCustomerOrdersTotalAfterDateAsOutput;
 GO
-
 CREATE PROCEDURE dbo.GetCustomerOrdersTotalAfterDateAsOutput
     @CustomerID   INT,
     @OrdersDate   DATETIME2,
@@ -104,7 +179,6 @@ GO
 IF OBJECT_ID(N'dbo.GetCustomerOrdersTotalAfterDateWithStatus', N'P') IS NOT NULL
     DROP PROCEDURE dbo.GetCustomerOrdersTotalAfterDateWithStatus;
 GO
-
 CREATE PROCEDURE dbo.GetCustomerOrdersTotalAfterDateWithStatus
     @CustomerID   INT,
     @OrdersDate   DATETIME2,
@@ -135,6 +209,9 @@ BEGIN
 END
 GO
 
+IF OBJECT_ID(N'dbo.GetCustomerOrdersTotalAfterDate_InOut', N'P') IS NOT NULL
+    DROP PROCEDURE dbo.GetCustomerOrdersTotalAfterDate_InOut;
+GO
 CREATE PROCEDURE dbo.GetCustomerOrdersTotalAfterDate_InOut
     @CustomerID    INT,
     @OrdersDate    DATETIME2,
@@ -154,11 +231,12 @@ BEGIN
 END
 GO
 
--- Functions
+/* =========================
+   Scalar Function
+   ========================= */
 IF OBJECT_ID(N'dbo.fn_GetCustomerOrdersTotalAfterDate', N'FN') IS NOT NULL
     DROP FUNCTION dbo.fn_GetCustomerOrdersTotalAfterDate;
 GO
-
 CREATE FUNCTION dbo.fn_GetCustomerOrdersTotalAfterDate
 (
     @CustomerID INT,

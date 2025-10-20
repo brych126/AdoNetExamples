@@ -164,6 +164,31 @@ declare @p3 numeric(18,2)
             decimal updated = (decimal)runningTotal.Value;
             Console.WriteLine($"Updated running total = {updated}");
         }
+        public static void CallGetCustomerOrderedProductsByEmail_ReturnsRecordsSet_StoredProcedure()
+        {
+            using var conn = new SqlConnection(AdoNetExamplesConnectionStringBuilder.ConnectionString);
+            conn.Open();
+
+            using var cmd = new SqlCommand("dbo.GetCustomerOrderedProductsByEmail", conn);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Parameters.Add(new SqlParameter("@Email", SqlDbType.NVarChar, 255) { Value = "alice@example.com" });
+
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                var orderId = reader.GetInt32(reader.GetOrdinal("OrderId"));
+                var created = reader.GetDateTime(reader.GetOrdinal("OrderCreatedAt"));
+                var payed = reader.GetBoolean(reader.GetOrdinal("Payed"));
+                var productId = reader.GetInt32(reader.GetOrdinal("ProductId"));
+                var name = reader.GetString(reader.GetOrdinal("ProductName"));
+                var qty = reader.GetInt32(reader.GetOrdinal("Quantity"));
+                var unit = reader.GetDecimal(reader.GetOrdinal("UnitPriceUsed"));
+                var lineTotal = reader.GetDecimal(reader.GetOrdinal("LineTotal"));
+
+                Console.WriteLine($"Order #{orderId} | {created:u} | Payed={payed} | " +
+                                  $"Product {productId} {name} | Qty={qty} | Unit={unit:0.00} | Total={lineTotal:0.00}");
+            }
+        }
 
         public static void CallFn_GetCustomerOrdersTotalAfterDate_Function()
         {

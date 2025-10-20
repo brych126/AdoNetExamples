@@ -58,6 +58,7 @@ FROM dbo.Products;";
             using var conn = new SqlConnection(AdoNetExamplesConnectionStringBuilder.ConnectionString);
             var dataSet = new DataSet();
             using var dataAdapter = new SqlDataAdapter(sql, conn);
+            dataAdapter.TableMappings.Add("Table", "NorthwindCustomers");
 
             dataAdapter.Fill(dataSet);
             dataSet.Tables[0].TableName = "Customers";
@@ -160,7 +161,6 @@ FROM dbo.Products;";
             customers.MissingSchemaAction = MissingSchemaAction.AddWithKey; // bring PK info
             customers.FillSchema(ds, SchemaType.Source);
             customers.Fill(ds, "Customers");
-            int index = 0;
 
             // Load Orders
             var orders = new SqlDataAdapter("SELECT * FROM dbo.Orders", conn);

@@ -231,6 +231,35 @@ BEGIN
 END
 GO
 
+IF OBJECT_ID(N'dbo.GetCustomerOrderedProductsByEmail', N'P') IS NOT NULL
+    DROP PROCEDURE dbo.GetCustomerOrderedProductsByEmail;
+GO
+
+CREATE PROCEDURE dbo.GetCustomerOrderedProductsByEmail
+    @Email NVARCHAR(255)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- Return order lines with product info for the customer identified by email
+    SELECT
+        o.Id                         AS OrderId,
+        o.CreatedAt                  AS OrderCreatedAt,
+        o.Payed                      AS Payed,
+        od.ProductId,
+        p.[Name]                     AS ProductName,
+        od.Quantity,
+        COALESCE(od.Price, p.CurrentPrice)      AS UnitPriceUsed,
+        CAST(od.Quantity * COALESCE(od.Price, p.CurrentPrice) AS DECIMAL(18,2)) AS LineTotal
+    FROM dbo.Customers      AS c
+    JOIN dbo.Orders         AS o  ON o.CustomerId = c.Id
+    JOIN dbo.OrderDetails   AS od ON od.OrderId   = o.Id
+    JOIN dbo.Products       AS p  ON p.Id         = od.ProductId
+    WHERE c.Email = @Email
+    ORDER BY o.CreatedAt, o.Id, od.ProductId;
+END
+GO
+
 /* =========================
    Scalar Function
    ========================= */

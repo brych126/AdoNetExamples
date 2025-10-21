@@ -163,6 +163,7 @@ VALUES (@Name, @Email);", conn);
 
             using var adapter = new SqlDataAdapter(
                 "SELECT Id, [Name], Email, CreatedAt FROM dbo.Customers ORDER BY Id", conn);
+            adapter.UpdateBatchSize = 5;
 
             adapter.InsertCommand = new SqlCommand(@"
 INSERT INTO dbo.Customers([Name], Email) VALUES (@Name, @Email);
@@ -182,15 +183,22 @@ SET @Id = CAST(SCOPE_IDENTITY() AS int);", conn);
             var table = new DataTable();
             adapter.Fill(table);
 
-            var r = table.NewRow();
-            r["Name"] = "Zoe";
-            r["Email"] = "zoe@example.com";
-            r["CreatedAt"] = DateTime.MinValue;
-            table.Rows.Add(r);
+            var r1 = table.NewRow();
+            r1["Name"] = "Zoe";
+            r1["Email"] = "zoe1@example.com";
+            r1["CreatedAt"] = DateTime.MinValue;
+            table.Rows.Add(r1);
 
-            // This will populate r["Id"] and r["CreatedAt"] from OUTPUT INSERTED...
+            var r2 = table.NewRow();
+            r2["Name"] = "Zoe";
+            r2["Email"] = "zoe2@example.com";
+            r2["CreatedAt"] = DateTime.MinValue;
+            table.Rows.Add(r2);
+
+            // This will populate r["Id"] and r["CreatedAt"] from passed output param
             adapter.Update(table);
-            Console.WriteLine($"Inserted row got Id = {r["Id"]} and CreatedAt = {r["CreatedAt"]}");
+            Console.WriteLine($"Inserted row1 got Id = {r1["Id"]}");
+            Console.WriteLine($"Inserted row2 got Id = {r2["Id"]}");
 
             CleanUp(conn);
         }

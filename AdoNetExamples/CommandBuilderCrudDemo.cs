@@ -290,10 +290,10 @@ SET @Id = CAST(SCOPE_IDENTITY() AS int);", conn);
 
             // Roll back the changes
             DataTable department = mySchool.Tables["Department"]!;
-            DataTable course = mySchool!.Tables["Course"]!;
+            DataTable course = mySchool.Tables["Course"]!;
 
             department.Rows[0]["Name"] = "New" + department.Rows[0][1];
-            course!.Rows[0]["Title"] = "New" + course.Rows[0]["Title"];
+            course.Rows[0]["Title"] = "New" + course.Rows[0]["Title"];
             course.Rows[0]["Credits"] = 10;
 
             Console.WriteLine("After we changed the tables:");
@@ -307,8 +307,8 @@ SET @Id = CAST(SCOPE_IDENTITY() AS int);", conn);
             Console.WriteLine("After use the RejectChanges method in Department table to roll back the changes:");
             ShowDataTable(department);
 
-            DataColumn[] primaryColumns = [course!.Columns["CourseID"]!];
-            DataColumn[] resetColumns = [course!.Columns["Title"]!];
+            DataColumn[] primaryColumns = [course.Columns["CourseID"]!];
+            DataColumn[] resetColumns = [course.Columns["Title"]!];
             ResetCourse(course, MySchoolDbConnectionStringBuilder.ConnectionString, primaryColumns, resetColumns);
             Console.WriteLine("After use the ResetCourse method in Course table to roll back the changes:");
             ShowDataTable(course);

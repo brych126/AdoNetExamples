@@ -110,10 +110,10 @@ namespace AdoNetExamples
                 columnRestrictions[2] = "Course";
                 columnRestrictions[3] = "DepartmentID";
 
-                DataTable departmentIDSchemaTable = conn.GetSchema("Columns", columnRestrictions);
+                DataTable departmentIdSchemaTable = conn.GetSchema("Columns", columnRestrictions);
 
                 Console.WriteLine("Schema Information of DepartmentID Column in Course Table:");
-                ShowColumns(departmentIDSchemaTable);
+                ShowColumns(departmentIdSchemaTable);
                 Console.WriteLine();
 
                 // First, get schema information of all the IndexColumns in current database  

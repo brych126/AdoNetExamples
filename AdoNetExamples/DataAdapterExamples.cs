@@ -4,7 +4,7 @@ using System.Data;
 namespace AdoNetExamples
 {
     internal static class DataAdapterExamples
-    {        
+    {
         public static void PopulateDataTable()
         {
             using var conn = new SqlConnection(AdoNetExamplesConnectionStringBuilder.ConnectionString);
@@ -34,7 +34,7 @@ namespace AdoNetExamples
                 int id = (int)row["Id"];
                 string name = (string)row["Name"];
                 string? email = row.IsNull("Email") ? null : (string)row["Email"];
-                DateTime created = (DateTime)row["CreatedAt"];
+                var created = (DateTime)row["CreatedAt"];
 
                 Console.WriteLine($"{id}: {name,-10} | {email ?? "(no email)"} | {created:u}");
             }
@@ -91,12 +91,12 @@ FROM dbo.Products;";
                 int custId = (int)cust["Id"];
                 string name = (string)cust["Name"];
                 string email = cust.IsNull("Email") ? "(no email)" : (string)cust["Email"];
-                DateTime custCreated = (DateTime)cust["CreatedAt"];
+                var custCreated = (DateTime)cust["CreatedAt"];
 
                 Console.WriteLine($"\nCUSTOMER #{custId}: {name}  <{email}>  Created: {custCreated:yyyy-MM-dd HH:mm:ss}");
 
                 // children: Orders
-                var orders = cust.GetChildRows("CustOrders");
+                DataRow[] orders = cust.GetChildRows("CustOrders");
                 if (orders.Length == 0)
                 {
                     Console.WriteLine("  (no orders)");
@@ -108,14 +108,14 @@ FROM dbo.Products;";
                     int orderId = (int)ord["Id"];
                     bool payed = (bool)ord["Payed"];
                     decimal? amount = ord.IsNull("Amount") ? null : (decimal?)ord["Amount"];
-                    DateTime orderCreated = (DateTime)ord["CreatedAt"];
+                    var orderCreated = (DateTime)ord["CreatedAt"];
 
                     Console.WriteLine($"  ORDER #{orderId}  Payed={(payed ? "Yes" : "No")}  " +
                                       $"Amount={(amount.HasValue ? amount.Value.ToString("0.00") : "(null)")}  " +
                                       $"Created: {orderCreated:yyyy-MM-dd HH:mm:ss}");
 
                     // children: OrderDetails
-                    var orderDetailsList = ord.GetChildRows("Order_OrderDetails");
+                    DataRow[] orderDetailsList = ord.GetChildRows("Order_OrderDetails");
                     if (orderDetailsList.Length == 0)
                     {
                         Console.WriteLine("    (no order lines)");
@@ -171,8 +171,8 @@ FROM dbo.Products;";
             // IMPORTANT: Add the relation explicitly (FillSchema does not add FKs)
             if (ds.Relations["FK_Orders_Customers"] is null)
             {
-                var parentCol = ds.Tables["Customers"]?.Columns["Id"];
-                var childCol = ds.Tables["Orders"]?.Columns["CustomerId"];
+                DataColumn? parentCol = ds.Tables["Customers"]?.Columns["Id"];
+                DataColumn? childCol = ds.Tables["Orders"]?.Columns["CustomerId"];
                 if (parentCol != null && childCol != null)
                 {
                     var rel = new DataRelation("FK_Orders_Customers", parentCol, childCol, createConstraints: true);
@@ -187,7 +187,7 @@ FROM dbo.Products;";
             Console.WriteLine("\nNavigate child -> parent:");
             foreach (DataRow order in ds.Tables["Orders"]!.Rows)
             {
-                var parentCustomer = order.GetParentRow(ds.Relations[0]); // FK_Orders_Customers
+                DataRow? parentCustomer = order.GetParentRow(ds.Relations[0]); // FK_Orders_Customers
                 Console.WriteLine($"Order {order["Id"],-2}: Amount={order["Amount"],6} -> Customer={parentCustomer!["Name"]}");
             }
         }

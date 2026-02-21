@@ -52,7 +52,7 @@ namespace AdoNetExamples
 
         public static void GetMySchoolDbSchema()
         {
-            using (SqlConnection conn = new SqlConnection(MySchoolDbConnectionStringBuilder.ConnectionString))
+            using (var conn = new SqlConnection(MySchoolDbConnectionStringBuilder.ConnectionString))
             {
                 conn.Open();
 

@@ -20,7 +20,7 @@ namespace AdoNetExamples
                 new SqlParameter("@OrdersDate", SqlDbType.DateTime2) { Value = new DateTime(2025, 1, 1) });
 
             // exec dbo.GetCustomerOrdersTotalAfterDateAsResultSet @CustomerID=1,@OrdersDate='2025-01-01 00:00:00'
-            using var reader = cmd.ExecuteReader();
+            using SqlDataReader reader = cmd.ExecuteReader();
             if (reader.Read())
             {
                 // Handle NULLs safely (though proc already uses ISNULL)
@@ -60,17 +60,17 @@ namespace AdoNetExamples
                 Direction = ParameterDirection.Output
             };
             cmd.Parameters.Add(orderCountParam);
-            
-/*
-declare @p3 numeric(18,2)
-   set @p3=NULL
-   declare @p4 int
-   set @p4=NULL
-   exec dbo.GetCustomerOrdersTotalAfterDateAsOutput @CustomerID=1,@OrdersDate='2025-01-01 00:00:00',@TotalAmount=@p3 output,@OrderCount=@p4 output
-   select @p3, @p4
-*/
+
+            /*
+            declare @p3 numeric(18,2)
+               set @p3=NULL
+               declare @p4 int
+               set @p4=NULL
+               exec dbo.GetCustomerOrdersTotalAfterDateAsOutput @CustomerID=1,@OrdersDate='2025-01-01 00:00:00',@TotalAmount=@p3 output,@OrderCount=@p4 output
+               select @p3, @p4
+            */
             cmd.ExecuteNonQuery();
-            
+
             decimal totalAmount = (decimal)(totalAmountParam.Value ?? 0m);
             int orderCount = (int)(orderCountParam.Value ?? 0);
 
@@ -110,18 +110,18 @@ declare @p3 numeric(18,2)
                 Direction = ParameterDirection.ReturnValue
             };
             cmd.Parameters.Add(pRet);
-/*
-   declare @p3 numeric(18,2)
-   set @p3=NULL
-   declare @p4 int
-   set @p4=NULL
-   exec dbo.GetCustomerOrdersTotalAfterDateWithStatus @CustomerID=1,@OrdersDate='2025-01-01 00:00:00',@TotalAmount=@p3 output,@OrderCount=@p4 output
-   select @p3, @p4
-*/ 
-/*
-Unlike OUTPUT params (which are included in the exec … output; select … replay script we saw in Profiler), 
-the return value is pulled from the TDS header, so we won’t see it in that “synthetic” script.
-*/
+            /*
+               declare @p3 numeric(18,2)
+               set @p3=NULL
+               declare @p4 int
+               set @p4=NULL
+               exec dbo.GetCustomerOrdersTotalAfterDateWithStatus @CustomerID=1,@OrdersDate='2025-01-01 00:00:00',@TotalAmount=@p3 output,@OrderCount=@p4 output
+               select @p3, @p4
+            */
+            /*
+            Unlike OUTPUT params (which are included in the exec … output; select … replay script we saw in Profiler), 
+            the return value is pulled from the TDS header, so we won’t see it in that “synthetic” script.
+            */
             cmd.ExecuteNonQuery();
 
             int status = (int)(pRet.Value ?? 0);
@@ -153,12 +153,12 @@ the return value is pulled from the TDS header, so we won’t see it in that “
             };
             cmd.Parameters.Add(runningTotal);
 
-/*
-declare @p3 numeric(18,2)
-   set @p3=100.00
-   exec dbo.GetCustomerOrdersTotalAfterDate_InOut @CustomerID=1,@OrdersDate='2025-01-01 00:00:00',@RunningTotal=@p3 output
-   select @p3
-*/
+            /*
+            declare @p3 numeric(18,2)
+               set @p3=100.00
+               exec dbo.GetCustomerOrdersTotalAfterDate_InOut @CustomerID=1,@OrdersDate='2025-01-01 00:00:00',@RunningTotal=@p3 output
+               select @p3
+            */
             cmd.ExecuteNonQuery();
 
             decimal updated = (decimal)runningTotal.Value;
@@ -173,11 +173,11 @@ declare @p3 numeric(18,2)
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Parameters.Add(new SqlParameter("@Email", SqlDbType.NVarChar, 255) { Value = "alice@example.com" });
 
-            using var reader = cmd.ExecuteReader();
+            using SqlDataReader reader = cmd.ExecuteReader();
             while (reader.Read())
             {
                 var orderId = reader.GetInt32(reader.GetOrdinal("OrderId"));
-                var created = reader.GetDateTime(reader.GetOrdinal("OrderCreatedAt"));
+                DateTime created = reader.GetDateTime(reader.GetOrdinal("OrderCreatedAt"));
                 var payed = reader.GetBoolean(reader.GetOrdinal("Payed"));
                 var productId = reader.GetInt32(reader.GetOrdinal("ProductId"));
                 var name = reader.GetString(reader.GetOrdinal("ProductName"));

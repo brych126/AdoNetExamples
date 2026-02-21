@@ -52,13 +52,13 @@ DBCC CHECKIDENT ('Customers', RESEED, @max_id);
             // INSERT
             // -----------------------
             Console.WriteLine("\n=== INSERT ===");
-            var newRow = table.NewRow();
+            DataRow newRow = table.NewRow();
             newRow["Name"] = "Zoe";
             newRow["Email"] = "zoe@example.com";
             newRow["CreatedAt"] = DateTime.UtcNow;
             table.Rows.Add(newRow);
 
-            var newRow2 = table.NewRow();
+            DataRow newRow2 = table.NewRow();
             newRow2["Name"] = "Zoe";
             newRow2["Email"] = "zoe2@example.com";
             newRow2["CreatedAt"] = DateTime.UtcNow;
@@ -136,7 +136,7 @@ VALUES (@Name, @Email);", conn);
             var table = new DataTable();
             adapter.Fill(table);
 
-            var r = table.NewRow();
+            DataRow r = table.NewRow();
             r["Name"] = "Zoe";
             r["Email"] = "zoe@example.com";
             r["CreatedAt"] = DateTime.MinValue;
@@ -174,7 +174,7 @@ SET @Id = CAST(SCOPE_IDENTITY() AS int);", conn);
             adapter.InsertCommand.Parameters.Add("@Email", SqlDbType.NVarChar, 255, "Email").IsNullable = true;
 
             // OUTPUT param mapped back to the Id column
-            var pId = adapter.InsertCommand.Parameters.Add("@Id", SqlDbType.Int, 0, "Id");
+            SqlParameter pId = adapter.InsertCommand.Parameters.Add("@Id", SqlDbType.Int, 0, "Id");
             pId.Direction = ParameterDirection.Output;
 
             // Tell the adapter to apply OUTPUT params to the DataRow
@@ -183,13 +183,13 @@ SET @Id = CAST(SCOPE_IDENTITY() AS int);", conn);
             var table = new DataTable();
             adapter.Fill(table);
 
-            var r1 = table.NewRow();
+            DataRow r1 = table.NewRow();
             r1["Name"] = "Zoe";
             r1["Email"] = "zoe1@example.com";
             r1["CreatedAt"] = DateTime.MinValue;
             table.Rows.Add(r1);
 
-            var r2 = table.NewRow();
+            DataRow r2 = table.NewRow();
             r2["Name"] = "Zoe";
             r2["Email"] = "zoe2@example.com";
             r2["CreatedAt"] = DateTime.MinValue;
@@ -207,9 +207,9 @@ SET @Id = CAST(SCOPE_IDENTITY() AS int);", conn);
         #region MySchool
         public static void MySchoolDbAdapterUpdate()
         {
-            using SqlConnection connection =
+            using var connection =
                 new SqlConnection(MySchoolDbConnectionStringBuilder.ConnectionString);
-            SqlDataAdapter dataAdpater = new SqlDataAdapter(
+            var dataAdpater = new SqlDataAdapter(
                 "Select DepartmentID, [Name] from Department;",
                 connection);
 
@@ -225,7 +225,7 @@ SET @Id = CAST(SCOPE_IDENTITY() AS int);", conn);
             parameter.SourceColumn = "DepartmentName";
             parameter.SourceVersion = DataRowVersion.Original;
 
-            DataSet ds = new DataSet();
+            var ds = new DataSet();
             DataTableMapping mapping =
                 dataAdpater.TableMappings.Add("Table", "Department");
             mapping.ColumnMappings.Add("Name", "DepartmentName");
@@ -271,9 +271,9 @@ SET @Id = CAST(SCOPE_IDENTITY() AS int);", conn);
                                    FROM [MySchool].[dbo].[Course]
                                    Group by [CourseID]";
 
-            DataSet mySchool = new DataSet();
+            var mySchool = new DataSet();
 
-            SqlCommand selectCommand = new SqlCommand(selectString);
+            var selectCommand = new SqlCommand(selectString);
             SqlParameter parameter = selectCommand.Parameters.Add("@Year", SqlDbType.SmallInt, 2);
             parameter.Value = new Random(DateTime.Now.Millisecond).Next(9999);
 
@@ -317,7 +317,7 @@ SET @Id = CAST(SCOPE_IDENTITY() AS int);", conn);
             String insertString = @"Insert into [MySchool].[dbo].[Course]([CourseID],[Year],[Title],
                                    [Credits],[DepartmentID])
              values (@CourseID,@Year,@Title,@Credits,@DepartmentID)";
-            SqlCommand insertCommand = new SqlCommand(insertString);
+            var insertCommand = new SqlCommand(insertString);
             insertCommand.Parameters.Add("@CourseID", SqlDbType.NVarChar, 10, "CourseID");
             insertCommand.Parameters.Add("@Year", SqlDbType.SmallInt, 2, "Year");
             insertCommand.Parameters.Add("@Title", SqlDbType.NVarChar, 100, "Title");
@@ -330,13 +330,13 @@ SET @Id = CAST(SCOPE_IDENTITY() AS int);", conn);
 
         private static void CopyData(DataSet dataSet, String connectionString, SqlCommand selectCommand, DataTableMapping[] tableMappings)
         {
-            using (SqlConnection connection = new SqlConnection(connectionString))
+            using (var connection = new SqlConnection(connectionString))
             {
                 selectCommand.Connection = connection;
 
                 connection.Open();
 
-                using (SqlDataAdapter adapter = new SqlDataAdapter(selectCommand))
+                using (var adapter = new SqlDataAdapter(selectCommand))
                 {
                     adapter.TableMappings.AddRange(tableMappings);
                     // If set the AcceptChangesDuringFill as the false, AcceptChanges will not be called on a
@@ -360,7 +360,7 @@ SET @Id = CAST(SCOPE_IDENTITY() AS int);", conn);
 
             String selectString = $"Select {primaryCols},{resetCols} from Course Group by {primaryCols}";
 
-            SqlCommand selectCommand = new SqlCommand(selectString);
+            var selectCommand = new SqlCommand(selectString);
 
             ResetDataTable(table, connectionString, selectCommand);
         }
@@ -371,13 +371,13 @@ SET @Id = CAST(SCOPE_IDENTITY() AS int);", conn);
         private static void ResetDataTable(DataTable table, String connectionString,
             SqlCommand selectCommand)
         {
-            using (SqlConnection connection = new SqlConnection(connectionString))
+            using (var connection = new SqlConnection(connectionString))
             {
                 selectCommand.Connection = connection;
 
                 connection.Open();
 
-                using (SqlDataAdapter adapter = new SqlDataAdapter(selectCommand))
+                using (var adapter = new SqlDataAdapter(selectCommand))
                 {
                     // The incoming values for this row will be written to the current version of each
                     // column. The original version of each column's data will not be changed.
@@ -391,7 +391,7 @@ SET @Id = CAST(SCOPE_IDENTITY() AS int);", conn);
         private static void BatchInsertUpdate(DataTable table, String connectionString,
             SqlCommand insertCommand, Int32 batchSize)
         {
-            using (SqlConnection connection = new SqlConnection(connectionString))
+            using (var connection = new SqlConnection(connectionString))
             {
                 insertCommand.Connection = connection;
                 // When setting UpdateBatchSize to a value other than 1, all the commands
@@ -401,7 +401,7 @@ SET @Id = CAST(SCOPE_IDENTITY() AS int);", conn);
 
                 connection.Open();
 
-                using (SqlDataAdapter adapter = new SqlDataAdapter())
+                using (var adapter = new SqlDataAdapter())
                 {
                     adapter.InsertCommand = insertCommand;
                     // Gets or sets the number of rows that are processed in each round-trip to the server.
@@ -443,7 +443,7 @@ SET @Id = CAST(SCOPE_IDENTITY() AS int);", conn);
 
         private static void CleanUp(SqlConnection connection)
         {
-            var affectedRows = new SqlCommand(@"
+            int affectedRows = new SqlCommand(@"
 DELETE Customers
 WHERE [Name] = 'Zoe'",
                 connection).ExecuteNonQuery();

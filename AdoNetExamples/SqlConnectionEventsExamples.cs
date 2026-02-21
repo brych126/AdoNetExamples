@@ -117,7 +117,7 @@ PRINT 'Current Isolation Level: ' + @level;";
 
             conn2.InfoMessage += OnInfoMessage;
 
-            conn2.Open(); 
+            conn2.Open();
             using var cmd2 = new SqlCommand(sql, conn2);
             cmd2.ExecuteNonQuery();
 
@@ -195,7 +195,7 @@ PRINT 'Current Isolation Level: ' + @level;";
         /// </summary>
         private static void OnInfoMessage(object sender, SqlInfoMessageEventArgs e)
         {
-           PrintInfoMessage(e, true);
+            PrintInfoMessage(e, true);
         }
 
         private static void OnInfoMessageWithoutPrintingErrors(object sender, SqlInfoMessageEventArgs e)
@@ -267,7 +267,7 @@ FROM sys.dm_exec_sessions
 WHERE session_id = @@SPID;";
                 using (var get = new SqlCommand(getLevelSql, conn))
                 {
-                    var level = get.ExecuteScalar() as string ?? "Unknown";
+                    string level = get.ExecuteScalar() as string ?? "Unknown";
                     Console.WriteLine($"  Current isolation level: {level}");
 
                     if (!string.Equals(level, "ReadCommitted", StringComparison.OrdinalIgnoreCase))

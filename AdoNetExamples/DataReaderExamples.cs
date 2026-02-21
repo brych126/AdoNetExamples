@@ -21,7 +21,7 @@ namespace AdoNetExamples
             await using var cmd = new SqlCommand(sql, conn);
 
             // ExecuteReaderAsync returns a forward-only, read-only cursor
-            await using var reader = await cmd.ExecuteReaderAsync();
+            await using SqlDataReader reader = await cmd.ExecuteReaderAsync();
 
             // ----- Result set 1: Customers -----
             Console.WriteLine("=== Customers ===");
@@ -56,7 +56,7 @@ namespace AdoNetExamples
                 {
                     int orderId = reader.GetInt32(ordOrderId);
                     int customerId = reader.GetInt32(ordCustomerId);
-                    decimal amount =  reader.IsDBNull(ordAmount) ? 0 : reader.GetDecimal(ordAmount);
+                    decimal amount = reader.IsDBNull(ordAmount) ? 0 : reader.GetDecimal(ordAmount);
                     DateTime created = reader.GetDateTime(ordOrderCreated);
 
                     Console.WriteLine($"Order {orderId}: Cust={customerId}, Amount={amount:C}, Date={created:yyyy-MM-dd}");

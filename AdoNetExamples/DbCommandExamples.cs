@@ -176,14 +176,14 @@ namespace AdoNetExamples
             using SqlDataReader reader = cmd.ExecuteReader();
             while (reader.Read())
             {
-                var orderId = reader.GetInt32(reader.GetOrdinal("OrderId"));
+                int orderId = reader.GetInt32(reader.GetOrdinal("OrderId"));
                 DateTime created = reader.GetDateTime(reader.GetOrdinal("OrderCreatedAt"));
-                var payed = reader.GetBoolean(reader.GetOrdinal("Payed"));
-                var productId = reader.GetInt32(reader.GetOrdinal("ProductId"));
-                var name = reader.GetString(reader.GetOrdinal("ProductName"));
-                var qty = reader.GetInt32(reader.GetOrdinal("Quantity"));
-                var unit = reader.GetDecimal(reader.GetOrdinal("UnitPriceUsed"));
-                var lineTotal = reader.GetDecimal(reader.GetOrdinal("LineTotal"));
+                bool payed = reader.GetBoolean(reader.GetOrdinal("Payed"));
+                int productId = reader.GetInt32(reader.GetOrdinal("ProductId"));
+                string name = reader.GetString(reader.GetOrdinal("ProductName"));
+                int qty = reader.GetInt32(reader.GetOrdinal("Quantity"));
+                decimal unit = reader.GetDecimal(reader.GetOrdinal("UnitPriceUsed"));
+                decimal lineTotal = reader.GetDecimal(reader.GetOrdinal("LineTotal"));
 
                 Console.WriteLine($"Order #{orderId} | {created:u} | Payed={payed} | " +
                                   $"Product {productId} {name} | Qty={qty} | Unit={unit:0.00} | Total={lineTotal:0.00}");
@@ -207,7 +207,7 @@ namespace AdoNetExamples
             @OrdersDate);',N'@CustomerID int,@OrdersDate datetime2(7)',
             @CustomerID=1,@OrdersDate='2025-01-01 00:00:00'
              */
-            var result = cmd.ExecuteScalar();
+            object? result = cmd.ExecuteScalar();
             decimal total = result != DBNull.Value ? (decimal)result : 0m;
 
             Console.WriteLine($"Total Amount for Customer 1 after 2025-01-01 = {total}");

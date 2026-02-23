@@ -38,15 +38,13 @@ namespace AdoNetExamples
 
         public static void TestSqlConnectionGetSchema()
         {
-            using (var conn = new SqlConnection(AdoNetExamplesConnectionStringBuilder.ConnectionString))
-            {
-                conn.Open();
-                DataTable constraints = conn.GetSchema("IndexColumns", [null, null, "Customers"]);
+            using var conn = new SqlConnection(AdoNetExamplesConnectionStringBuilder.ConnectionString);
+            conn.Open();
+            DataTable constraints = conn.GetSchema("IndexColumns", [null, null, "Customers"]);
 
-                foreach (DataRow row in constraints.Rows)
-                {
-                    Console.WriteLine($"{row["CONSTRAINT_NAME"]} -> Column: {row["COLUMN_NAME"]}");
-                }
+            foreach (DataRow row in constraints.Rows)
+            {
+                Console.WriteLine($"{row["CONSTRAINT_NAME"]} -> Column: {row["COLUMN_NAME"]}");
             }
         }
 
@@ -80,7 +78,7 @@ namespace AdoNetExamples
                 // You can specify the Catalog, Schema, Table Name, Table Type to get   
                 // the specified table(s).  
                 // You can use four restrictions for Table, so you should create a 4 members array.  
-                String[] tableRestrictions = new String[4];
+                string[] tableRestrictions = new string[4];
 
                 // For the array, 0-member represents Catalog; 1-member represents Schema;   
                 // 2-member represents Table Name; 3-member represents Table Type.   
@@ -102,7 +100,7 @@ namespace AdoNetExamples
 
                 // You can specify the Catalog, Schema, Table Name, Column Name to get the specified column(s).  
                 // You can use four restrictions for Column, so you should create a 4 members array.  
-                String[] columnRestrictions = new String[4];
+                string[] columnRestrictions = new string[4];
 
                 // For the array, 0-member represents Catalog; 1-member represents Schema;   
                 // 2-member represents Table Name; 3-member represents Column Name.   
@@ -126,7 +124,7 @@ namespace AdoNetExamples
                 // You can specify the Catalog, Schema, Table Name, Constraint Name, Column Name to   
                 // get the specified column(s).  
                 // You can use five restrictions for Column, so you should create a 5 members array.  
-                String[] indexColumnsRestrictions = new String[5];
+                string[] indexColumnsRestrictions = new string[5];
 
                 // For the array, 0-member represents Catalog; 1-member represents Schema;   
                 // 2-member represents Table Name; 3-member represents Constraint Name;4-member represents Column Name.   
@@ -157,7 +155,7 @@ namespace AdoNetExamples
             {
                 foreach (DataColumn col in table.Columns)
                 {
-                    if (col.DataType.Equals(typeof(DateTime)))
+                    if (col.DataType == typeof(DateTime))
                     {
                         Console.Write("{0,-" + length + ":d}", row[col]);
                     }

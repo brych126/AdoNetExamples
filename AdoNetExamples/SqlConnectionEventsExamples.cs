@@ -265,22 +265,20 @@ SELECT CASE transaction_isolation_level
        END
 FROM sys.dm_exec_sessions
 WHERE session_id = @@SPID;";
-                using (var get = new SqlCommand(getLevelSql, conn))
-                {
-                    string level = get.ExecuteScalar() as string ?? "Unknown";
-                    Console.WriteLine($"  Current isolation level: {level}");
+                using var get = new SqlCommand(getLevelSql, conn);
+                string level = get.ExecuteScalar() as string ?? "Unknown";
+                Console.WriteLine($"  Current isolation level: {level}");
 
-                    if (!string.Equals(level, "ReadCommitted", StringComparison.OrdinalIgnoreCase))
-                    {
-                        Console.WriteLine("  Resetting isolation level to READ COMMITTED…");
-                        using var reset = new SqlCommand("SET TRANSACTION ISOLATION LEVEL READ COMMITTED;", conn);
-                        reset.ExecuteNonQuery();
+                if (string.Equals(level, "ReadCommitted", StringComparison.OrdinalIgnoreCase)) 
+                    return;
 
-                        // (Optional) confirm after reset
-                        using var confirm = new SqlCommand(getLevelSql, conn);
-                        Console.WriteLine($"  After reset: {(confirm.ExecuteScalar() as string) ?? "Unknown"}");
-                    }
-                }
+                Console.WriteLine("  Resetting isolation level to READ COMMITTED…");
+                using var reset = new SqlCommand("SET TRANSACTION ISOLATION LEVEL READ COMMITTED;", conn);
+                reset.ExecuteNonQuery();
+
+                // (Optional) confirm after reset
+                using var confirm = new SqlCommand(getLevelSql, conn);
+                Console.WriteLine($"  After reset: {(confirm.ExecuteScalar() as string) ?? "Unknown"}");
             }
             catch (Exception ex)
             {
@@ -288,6 +286,5 @@ WHERE session_id = @@SPID;";
                 Console.WriteLine($"  [Isolation check/reset skipped due to error] {ex.Message}");
             }
         }
-
     }
 }
